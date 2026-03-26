@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Supplier {
+  id              String   @id @default(cuid())
+  nome            String
+  contato         String?
+  prazo_entrega   Int?     // Prazo de entrega em dias
+  
+  parts           Part[]
+  
+  @@map("fornecedores")
+}
+
+model Part {
+  id                    String   @id @default(cuid())
+  sku                   String   @unique @default(cuid()) // 1. OBRIGATÓRIO
+  imagem_id             String?
+  nome_produto          String
+  descricao_detalhada   String?
+  marca_peca            String?  // Ex: Bosch, Cofap
+  codigo_fabricante     String?  
+  
+  // 5. Aplicação / Compatibilidade
+  marca_veiculo         String?
+  aplicacao_veiculos    String?  // Gol, Voyage
+  aplicacao_ano_modelo  String?  // 2015-2020
+  aplicacao_motor       String?  // 1.0 8V
+
+  // 2. Quantidade em Estoque
+  quantidade            Int      @default(0)
+  quantidade_minima     Int      @default(5)
+  quantidade_maxima     Int?
+
+  // 3. Custo e Preco
+  preco_custo           Float    @default(0)
+  preco_venda           Float    @default(0)
+  
+  // 6. Localização no Estoque
+  local_prateleira      String?
+  local_corredor        String?
+  local_caixa           String?
+
+  // 7. Fornecedor
+  fornecedor_id         String?
+  fornecedor            Supplier? @relation(fields: [fornecedor_id], references: [id])
+  ultima_compra         DateTime?
+
+  // 8. Giro de Estoque
+  ultima_venda          DateTime?
+  
+  data_cadastro         DateTime  @default(now())
+  
+  // 4. Movimentações
+  movimentacoes         StockMovement[]
+
+  @@map("auto_pecas")
+}
+
+model StockMovement {
+  id              String   @id @default(cuid())
+  tipo            String   // "ENTRADA", "SAIDA", "AJUSTE"
+  quantidade      Int      // Quantidade movimentada (positiva)
+  origem          String   // "COMPRA", "VENDA", "PERDA", "N8N_IMPORT"
+  data_movimento  DateTime @default(now())
+  observacao      String?
+  
+  part_id         String
+  part            Part     @relation(fields: [part_id], references: [id], onDelete: Cascade)
+
+  @@map("movimentacoes_estoque")
+}
