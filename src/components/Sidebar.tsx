@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PackageSearch, Settings } from 'lucide-react';
+import { LayoutDashboard, PackageSearch, Settings, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -60,10 +60,20 @@ export function Sidebar({ companyName = "AutoSystem" }: { companyName?: string }
             US
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-200">Admin</span>
-            <span className="text-xs text-gray-500">n8n Integrado</span>
+            <span className="text-sm font-medium text-gray-200">{companyName === "AutoSystem" ? "Josnei" : "Admin"}</span>
+            <span className="text-xs text-gray-500">Administrador</span>
           </div>
         </div>
+        <button 
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+          }}
+          className="w-full mt-4 flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-400/10 transition-colors text-sm font-medium"
+        >
+          <LogOut className="w-4 h-4" />
+          Sair do Sistema
+        </button>
       </div>
     </aside>
   );

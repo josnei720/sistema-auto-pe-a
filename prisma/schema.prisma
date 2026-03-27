@@ -86,3 +86,14 @@ model Config {
 
   @@map("configuracoes")
 }
+
+model User {
+  id        String   @id @default(cuid())
+  nome      String
+  usuario   String   @unique
+  senha     String   // Senha (será hasheada)
+  role      String   @default("ADMIN") // ADMIN, OPERADOR, etc
+  data_criacao DateTime @default(now())
+
+  @@map("usuarios")
+}
