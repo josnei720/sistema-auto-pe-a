@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+export const dynamic = "force-dynamic";
 import DashboardCharts from '@/components/DashboardCharts';
 import { Package, DollarSign, TrendingUp, AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
