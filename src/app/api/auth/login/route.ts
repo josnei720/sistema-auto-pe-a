@@ -24,16 +24,17 @@ export async function POST(req: Request) {
       )
     }
 
-    const cookieStore = await cookies()
-    cookieStore.set('session', JSON.stringify({ id: user.id, usuario: user.usuario, role: user.role }), {
+    const response = NextResponse.json({ message: 'Login realizado com sucesso' })
+    
+    response.cookies.set('session', 'true', {
       httpOnly: true,
-      secure: false, // Desabilitado temporariamente para garantir compatibilidade em HTTP/HTTPS
+      secure: false, // Compatível com HTTP/HTTPS
       maxAge: 60 * 60 * 24 * 7, // 7 dias
       path: '/',
       sameSite: 'lax',
     })
 
-    return NextResponse.json({ message: 'Login realizado com sucesso' })
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

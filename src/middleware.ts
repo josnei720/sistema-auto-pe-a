@@ -2,23 +2,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get('session')?.value
+  const session = request.cookies.get('session')
   const { pathname } = request.nextUrl
 
-  // 1. Permitir rotas públicas e arquivos estáticos
-  if (
-    pathname.startsWith('/login') || 
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/_next') ||
-    pathname.includes('.')
-  ) {
+  // Se já está na página de login ou api de auth, deixa passar
+  if (pathname.includes('/login') || pathname.includes('/api/auth') || pathname.includes('_next')) {
     return NextResponse.next()
   }
 
-  // 2. Se não estiver logado, manda para o login
+  // Se não tem sessão, manda pro login
   if (!session) {
-    const loginUrl = new URL('/login', request.url)
-    return NextResponse.redirect(loginUrl)
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return NextResponse.next()
