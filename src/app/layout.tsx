@@ -10,15 +10,20 @@ export const metadata: Metadata = {
   description: "Sistema de Controle de Autopeças",
 };
 
-export default function RootLayout({
+import prisma from "@/lib/prisma";
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const config = await prisma.config.findFirst({ where: { id: 1 } });
+  const companyName = config?.nome_empresa || "AutoSystem";
+
   return (
     <html lang="pt-BR">
       <body className={`${inter.className} bg-background text-foreground flex h-screen overflow-hidden`}>
-        <Sidebar />
+        <Sidebar companyName={companyName} />
         <main className="flex-1 overflow-y-auto bg-[#0B1120] p-8">
           {children}
         </main>

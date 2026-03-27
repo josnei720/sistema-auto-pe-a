@@ -6,6 +6,8 @@ export const revalidate = 0; // Force dynamic to always show fresh data
 
 export default async function Home() {
   const parts = await prisma.part.findMany();
+  const config = await prisma.config.findFirst({ where: { id: 1 } });
+  const companyName = config?.nome_empresa || "AutoSystem";
   
   const totalParts = parts.reduce((acc: number, part: any) => acc + part.quantidade, 0);
   const totalItems = parts.length;
@@ -39,7 +41,7 @@ export default async function Home() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-white">Dashboard ERP</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-white">Dashboard {companyName}</h2>
         <p className="text-gray-400 mt-1">Visão geral do negócio, lucros e alertas de estoque.</p>
       </div>
 

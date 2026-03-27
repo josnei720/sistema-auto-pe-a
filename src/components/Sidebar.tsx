@@ -10,7 +10,7 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-export function Sidebar() {
+export function Sidebar({ companyName = "AutoSystem" }: { companyName?: string }) {
   const pathname = usePathname();
 
   const links = [
@@ -23,7 +23,7 @@ export function Sidebar() {
     <aside className="w-64 bg-[#111827] border-r border-[#1f2937] flex flex-col h-full shadow-2xl">
       <div className="p-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-          AutoSystem
+          {companyName}
         </h1>
         <p className="text-xs text-gray-500 mt-1">Gestão de Autopeças</p>
       </div>

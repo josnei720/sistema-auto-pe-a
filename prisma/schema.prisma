@@ -76,3 +76,13 @@ model StockMovement {
 
   @@map("movimentacoes_estoque")
 }
+
+model Config {
+  id                  Int     @id @default(1)
+  nome_empresa        String  @default("AutoSystem")
+  simbolo_moeda       String  @default("R$")
+  limite_estoque_baixo Int    @default(5)
+  n8n_webhook_url     String?
+
+  @@map("configuracoes")
+}
