@@ -27,9 +27,10 @@ export async function POST(req: Request) {
     const cookieStore = await cookies()
     cookieStore.set('session', JSON.stringify({ id: user.id, usuario: user.usuario, role: user.role }), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24, // 1 dia
+      secure: false, // Desabilitado temporariamente para garantir compatibilidade em HTTP/HTTPS
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
       path: '/',
+      sameSite: 'lax',
     })
 
     return NextResponse.json({ message: 'Login realizado com sucesso' })
