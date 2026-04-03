@@ -86,6 +86,9 @@ export default function PartsTable({ initialParts }: { initialParts: Part[] }) {
                           <div className="ml-4">
                             <div className="text-sm font-bold text-white max-w-[200px] truncate">{part.nome_produto}</div>
                             <div className="text-xs text-blue-400 font-mono mt-0.5">{part.sku}</div>
+                            <div className="text-[10px] text-gray-500 mt-1">
+                              Cadastrado em: {new Date(part.data_cadastro).toLocaleString('pt-BR')}
+                            </div>
                           </div>
                         </div>
                       </td>
