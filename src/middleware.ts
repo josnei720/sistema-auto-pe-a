@@ -10,6 +10,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Permite que o N8N envie dados sem precisar de login
+  if (pathname.startsWith('/api/parts') && request.method === 'POST') {
+    return NextResponse.next()
+  }
+
   // Se não tem sessão, manda pro login
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url))

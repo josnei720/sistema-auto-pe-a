@@ -4,9 +4,14 @@ import prisma from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    console.log('Dados recebidos do n8n/Agente:', data);
 
     const sku = data.sku || `SKU-${Date.now().toString().slice(-6)}`;
+    
+    // Garante que quantidade e preços sejam números válidos
     const quantidade = parseInt(data.quantidade_pecas_iguais || data.quantidade || 1, 10);
+    const preco_custo = parseFloat(data.preco_custo || data.custo_medio_internet || 0);
+    const preco_venda = parseFloat(data.preco_venda || data.preco_venda_medio_internet || 0);
 
     const newPart = await prisma.part.create({
       data: {
@@ -26,8 +31,8 @@ export async function POST(request: Request) {
         quantidade_minima: parseInt(data.quantidade_minima || 5, 10),
         quantidade_maxima: data.quantidade_maxima ? parseInt(data.quantidade_maxima, 10) : null,
 
-        preco_custo: parseFloat(data.custo_medio_internet || data.preco_custo || 0),
-        preco_venda: parseFloat(data.preco_venda_medio_internet || data.preco_venda || 0),
+        preco_custo,
+        preco_venda,
 
         local_prateleira: data.local_prateleira || null,
         local_corredor: data.local_corredor || null,

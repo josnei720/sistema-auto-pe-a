@@ -1,0 +1,280 @@
+{
+  "name": "AutoPecas_Aderval_FIXED_FINAL",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ]
+      },
+      "id": "node-tel-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        100,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "s3y5wvMryp1FSsGZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ !!$json.message.photo }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "node-if-foto",
+      "name": "E_foto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS uploads_pendentes (id SERIAL PRIMARY KEY, chat_id BIGINT, file_id TEXT, data_envio TIMESTAMP DEFAULT NOW());\nINSERT INTO uploads_pendentes (chat_id, file_id, data_envio) VALUES ({{ $json.message.chat.id }}, '{{ $json.message.photo[$json.message.photo.length - 1].file_id }}', NOW());"
+      },
+      "id": "node-pg-insert",
+      "name": "Salvar na Fila",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        550,
+        150
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "rQ0BO4F1TTHjIDHD"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message.text ? $json.message.text.toLowerCase().trim() : '' }}",
+              "value2": "finalizar"
+            }
+          ]
+        }
+      },
+      "id": "node-if-finalizar",
+      "name": "Comando Finalizar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        300,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT file_id FROM uploads_pendentes WHERE chat_id = {{ $json.message.chat.id }};"
+      },
+      "id": "node-pg-select",
+      "name": "Buscar Fotos Acumuladas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        550,
+        450
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "rQ0BO4F1TTHjIDHD"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "fileId": "={{ $json.file_id }}"
+      },
+      "id": "node-tel-get",
+      "name": "Baixar Imagen",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        450
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "s3y5wvMryp1FSsGZ"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": "gpt-4o",
+        "text": "Você é um assistente profissional de autopeças. Analise as fotos e retorne um JSON com estes campos (nunca deixe vazio):\n{\n  \"nome_produto\": \"\",\n  \"sku\": \"\",\n  \"descricao_detalhada\": \"\",\n  \"marca_peca\": \"\",\n  \"codigo_fabricante\": \"\",\n  \"marca_veiculo\": \"\",\n  \"aplicacao_veiculos\": \"\",\n  \"aplicacao_ano_modelo\": \"\",\n  \"aplicacao_motor\": \"\",\n  \"preco_custo\": 0,\n  \"preco_venda\": 0,\n  \"quantidade\": 1\n}\nUse a regra de SKU: CATEGORIA-MARCA-CODIGO.",
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "node-ai-vision",
+      "name": "IA Vision: Analisar Todas",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1050,
+        450
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "qaLm0CaUQwmtIRxu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://autosystem-frontend.ckyaro.easypanel.host/api/parts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonParameters": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "={{ $json.message.content }}"
+            }
+          ]
+        }
+      },
+      "id": "node-http-erp",
+      "name": "Enviar para o Sistema ERP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1300,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM uploads_pendentes WHERE chat_id = {{ $node[\"Telegram Trigger\"].json.message.chat.id }};"
+      },
+      "id": "node-pg-delete",
+      "name": "Limpar Fila",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1550,
+        450
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "rQ0BO4F1TTHjIDHD"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "E_foto?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Comando Finalizar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E_foto?": {
+      "main": [
+        [
+          {
+            "node": "Salvar na Fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comando Finalizar?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Fotos Acumuladas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Fotos Acumuladas": {
+      "main": [
+        [
+          {
+            "node": "Baixar Imagen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar Imagen": {
+      "main": [
+        [
+          {
+            "node": "IA Vision: Analisar Todas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Vision: Analisar Todas": {
+      "main": [
+        [
+          {
+            "node": "Enviar para o Sistema ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar para o Sistema ERP": {
+      "main": [
+        [
+          {
+            "node": "Limpar Fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "44efb102c958245f31401e28d441da88f9f9d58e3a3e240682a130db0d608e81"
+  },
+  "id": "YbfFJf5KXehOG27KlrLrt"
+}
